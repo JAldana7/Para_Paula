@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Para Paula ♥</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #050505;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+        }
+
+        /* OVERLAY */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            color: white;
+            transition: opacity 1s;
+            text-align: center;
+        }
+
+        #overlay h1 {
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        #overlay button {
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            border: 2px solid #3C70FB;
+            background: transparent;
+            color: #3C70FB;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(60, 112, 251, 0.3);
+            transition: 0.3s;
+        }
+
+        #overlay button:hover {
+            background: #3C70FB;
+            color: white;
+            box-shadow: 0 0 30px rgba(60, 112, 251, 0.9);
+            transform: scale(1.06);
+        }
+
+        #hint {
+            margin-top: 12px;
+            font-size: 14px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        /* FOTOS */
+        #photos {
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        #photos.show {
+            opacity: 1;
+        }
+
+        .polaroid {
+            position: absolute;
+            width: 150px;
+            background: white;
+            padding: 10px 10px 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes float {
+            0%   { transform: translate(0, 0) rotate(var(--r)); }
+            50%  { transform: translate(15px, -20px) rotate(calc(var(--r) + 2deg)); }
+            100% { transform: translate(-15px, 15px) rotate(calc(var(--r) - 2deg)); }
+        }
+
+        .p1 { top: 8%;  left: 10%;  --r: -8deg; }
+        .p2 { top: 12%; right: 10%; --r:  6deg; }
+        .p3 { bottom: 12%; left: 12%; --r: 5deg; }
+        .p4 { bottom: 8%;  right: 12%; --r: -6deg; }
+
+        /* FINAL */
+        #final {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #final.show {
+            opacity: 1;
+        }
+
+        #final::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        #final svg {
+            position: absolute;
+            width: 300px;
+            opacity: 0.35;
+            filter: drop-shadow(0 0 20px #3C70FB);
+        }
+
+        #final-text {
+            position: relative;
+            z-index: 3;
+            color: white;
+            text-align: center;
+            max-width: 340px;
+            text-shadow: 0 0 8px rgba(0,0,0,0.9);
+        }
+
+        #final-text h2 {
+            color: #3C70FB;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="overlay">
+    <h1>PARA MI HERMANITA:</h1>
+    <button onclick="start()">Descubrir mi sorpresa ♥</button>
+    <div id="hint">↑Presiona el botón↑</div>
+</div>
+
+<canvas id="c"></canvas>
+<audio id="music" src="musica.mp3"></audio>
+
+<div id="photos">
+    <img src="./img/foto1.png" class="polaroid p1">
+    <img src="./img/foto2.png" class="polaroid p2">
+    <img src="./img/foto3.png" class="polaroid p3">
+    <img src="./img/foto4.png" class="polaroid p4">
+</div>
+
+<div id="final">
+    <svg viewBox="0 0 24 24">
+        <path fill="#3C70FB"
+            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28
+               2 8.5 2 5.42 4.42 3 7.5 3
+               c1.74 0 3.41.81 4.5 2.09
+               C13.09 3.81 14.76 3 16.5 3
+               19.58 3 22 5.42 22 8.5
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>
+
+    <div id="final-text">
+        <h2>Paula...</h2>
+        <p>
+        Anhelo que tengas un excelente día y seas muy feliz. Que Dios te bendiga hoy y siempre, 
+        permitiéndote cumplir muchos años más llenos de salud y éxitos. <br><br>
+        Deseo que Dios guíe tu camino y te dé la sabiduría para superar los retos que te esperan. <br><br>
+        <strong>Cuídate mucho, te quiero mucho. ♥</strong>
+    </p>
+    </div>
+</div>
+
+<script>
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+    const music = document.getElementById('music');
+    const final = document.getElementById('final');
+    const photos = document.getElementById('photos');
+    const overlay = document.getElementById('overlay');
+
+    let w, h, letters = [], finished = false;
+
+    const opts = {
+        strings: [
+            'FELIZ CUMPLEAÑOS',
+            'PAULA♥',
+            '¡DESEO QUE SEAS',
+            'MUY FELIZ!'
+        ],
+        char: 40,
+        space: 45,
+        line: 60,
+        reach: 50,    // Velocidad de entrada más definida
+        hold: 3000,   // 3 segundos para leer
+        up: -12       // Velocidad de subida tipo globo rápida
+    };
+
+    function start() {
+        overlay.style.opacity = 0;
+        music.play().catch(() => {});
+        setTimeout(() => {
+            overlay.remove();
+            init();
+        }, 1000);
+    }
+
+    function init() {
+        w = c.width = window.innerWidth;
+        h = c.height = window.innerHeight;
+
+        if (w < 600) {
+            opts.char = 22;
+            opts.space = 24;
+            opts.line = 32;
+        }
+
+        ctx.font = `bold ${opts.char}px Verdana`;
+        ctx.textAlign = "center"; // Centrado para evitar cálculos manuales erróneos
+        create();
+        animate();
+    }
+
+    function create() {
+        letters = [];
+        let totalHeight = opts.strings.length * opts.line;
+
+        opts.strings.forEach((s, i) => {
+            let rowWidth = s.length * opts.space;
+            [...s].forEach((ch, j) => {
+                letters.push({
+                    ch,
+                    x: j * opts.space - rowWidth / 2 + opts.space / 2,
+                    y: i * opts.line - totalHeight / 2,
+                    currentY: h + 50, // Empiezan desde abajo (animación de entrada)
+                    targetY: i * opts.line - totalHeight / 2,
+                    t: 0,
+                    p: 'fire'
+                });
+            });
+        });
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.fillStyle = 'rgba(5,5,5,.3)';
+        ctx.fillRect(0, 0, w, h);
+
+        let allDone = true;
+
+        letters.forEach(l => {
+            ctx.fillStyle = 'white';
+            
+            if (l.p === 'fire') {
+                l.t++;
+                // Animación de entrada: suben suavemente a su posición
+                let progress = Math.min(l.t / opts.reach, 1);
+                l.currentY = h - (h / 2 - l.targetY) * progress;
+                
+                ctx.fillText(l.ch, w / 2 + l.x, l.currentY);
+
+                if (progress === 1) {
+                    l.p = 'hold';
+                    l.t = 0;
+                }
+                allDone = false;
+            }
+            else if (l.p === 'hold') {
+                ctx.fillText(l.ch, w / 2 + l.x, h / 2 + l.targetY);
+                if (l.t++ * 16 >= opts.hold) {
+                    l.p = 'balloon';
+                }
+                allDone = false;
+            }
+            else if (l.p === 'balloon') {
+                l.targetY += opts.up;
+                ctx.fillText(l.ch, w / 2 + l.x, h / 2 + l.targetY);
+                if (h / 2 + l.targetY > -50) allDone = false;
+                else l.p = 'done';
+            }
+        });
+
+        if (allDone && !finished) {
+            finished = true;
+            // Aparece el corazón y fotos casi de inmediato tras irse los globos
+            photos.classList.add('show');
+            final.classList.add('show');
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        w = c.width = window.innerWidth;
+        h = c.height = window.innerHeight;
+    });
+</script>
+
+</body>
+</html>
